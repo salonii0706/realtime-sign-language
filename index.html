@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign Language Detection</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Full background image with dark overlay */
+    body {
+      font-family: 'Open Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #f0f0f0;
+      position: relative;
+      z-index: 0;
+      background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* Overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5); /* dark overlay */
+      z-index: -1;
+    }
+
+    header {
+      background-color: transparent;
+      text-align: center;
+      padding: 30px 20px 40px;
+      color: #f0f0f0;
+      user-select: none;
+      border-bottom: 3px solid rgba(255,255,255,0.3);
+      position: relative;
+    }
+
+    /* The icon */
+    header .icon {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      width: 48px;
+      height: 48px;
+      opacity: 0.85;
+      filter: drop-shadow(0 0 2px rgba(0,0,0,0.7));
+    }
+
+    header h1 {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      user-select: none;
+      text-shadow: 1px 1px 6px rgba(0,0,0,0.7);
+    }
+
+    header p {
+      margin-top: 8px;
+      font-weight: 400;
+      font-size: 1.15rem;
+      font-style: italic;
+      user-select: none;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 1px 1px 6px rgba(0,0,0,0.7);
+    }
+
+    main {
+      flex-grow: 1;
+      max-width: 900px;
+      margin: 40px auto;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 14px;
+      padding: 30px 35px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      color: #2c3e50;
+      position: relative;
+      z-index: 1;
+    }
+
+    h2 {
+      border-bottom: 3px solid #4682b4;
+      padding-bottom: 10px;
+      margin-bottom: 30px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: 0.05em;
+      font-size: 1.8rem;
+    }
+
+    .video-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      padding-bottom: 10px;
+      overflow-x: visible;
+    }
+
+    .video-item {
+      background: #f0f4f8;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(70, 130, 180, 0.15);
+      cursor: default;
+      transition: box-shadow 0.3s ease;
+      color: #2c3e50;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .video-item:hover {
+      box-shadow: 0 8px 24px rgba(70, 130, 180, 0.3);
+    }
+
+    .video-item h3 {
+      margin: 0 0 12px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #34495e;
+      text-align: center;
+    }
+
+    .video-item img {
+      width: 100%;
+      max-width: 260px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(44, 62, 80, 0.1);
+      cursor: pointer;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+
+    .video-item img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(70, 130, 180, 0.25);
+    }
+
+    .detection-section label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #34495e;
+      font-size: 1.1rem;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid #4682b4;
+      background: #fff;
+      color: #2c3e50;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input[type="file"]:hover {
+      border-color: #34495e;
+      box-shadow: 0 0 8px rgba(52, 73, 94, 0.4);
+    }
+
+    #message {
+      margin-top: 16px;
+      font-style: italic;
+      color: #7f8c8d;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px 10px;
+      background-color: #2c3e50;
+      color: #ecf0f1;
+      font-size: 1rem;
+      user-select: none;
+      border-top: 3px solid #4682b4;
+      box-shadow: inset 0 1px 6px rgba(255,255,255,0.15);
+      letter-spacing: 0.05em;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      main {
+        margin: 25px 15px;
+        padding: 25px 20px;
+      }
+      h2 {
+        font-size: 1.4rem;
+      }
+      header .icon {
+        position: static;
+        display: block;
+        margin: 0 auto 15px;
+        width: 36px;
+        height: 36px;
+        opacity: 0.85;
+        filter: drop-shadow(0 0 2px rgba(0,0,0,0.7));
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img class="icon" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Sign-language.svg/64px-Sign-language.svg.png" alt="Sign Language Icon" />
+    <h1>Sign Language Detection</h1>
+    <p>Learn sign language and try simple detection simulation</p>
+  </header>
+
+  <main>
+    <section class="detection-section">
+      <h2>Upload Image/Video for Sign Detection</h2>
+      <label for="upload">Choose an image or video file:</label>
+      <input type="file" id="upload" accept="image/*,video/*" />
+      <div id="message">No file uploaded yet.</div>
+    </section>
+
+    <section class="learning-section" style="margin-top: 50px;">
+      <h2>Learn Sign Language - YouTube Videos</h2>
+      <div class="video-list" id="video-list">
+        <!-- Video thumbnails inserted here by JS -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 Sign Language Detection Web
+  </footer>
+
+  <script>
+    const uploadInput = document.getElementById('upload');
+    const message = document.getElementById('message');
+
+    uploadInput.addEventListener('change', () => {
+      const file = uploadInput.files[0];
+      if (!file) {
+        message.textContent = 'No file uploaded yet.';
+        return;
+      }
+      const fileType = file.type;
+      if (fileType.startsWith('image/')) {
+        message.textContent = `Image file "${file.name}" selected. (Sign detection coming soon!)`;
+      } else if (fileType.startsWith('video/')) {
+        message.textContent = `Video file "${file.name}" selected. (Sign detection coming soon!)`;
+      } else {
+        message.textContent = 'Unsupported file type. Please upload an image or video.';
+      }
+    });
+
+    const videos = [
+      { id: "0cTfEzL3ss0", title: "ASL Alphabet A-Z", thumb: "https://images.unsplash.com/photo-1519985176271-adb1088fa94c?auto=format&fit=crop&w=260&q=80" },
+      { id: "q0Gid2tKnE0", title: "Basic Sign Language Phrases", thumb: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=260&q=80" },
+      { id: "uaWQVW6w6jo", title: "Learn Common Signs", thumb: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=260&q=80" },
+      { id: "xMpJgLvEzNc", title: "American Sign Language (ASL) Numbers", thumb: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=260&q=80" },
+      { id: "iTKqPp9jw9k", title: "ASL Fingerspelling Practice", thumb: "https://images.unsplash.com/photo-1496317899792-9d7dbcd928a1?auto=format&fit=crop&w=260&q=80" },
+      { id: "5p-4vH4NMT8", title: "Learn Sign Language for Beginners", thumb: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=260&q=80" },
+      { id: "s8ZtRc8bf7Y", title: "10 Common ASL Signs You Should Know", thumb: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=260&q=80" },
+      { id: "GEdzT-KoVY0", title: "ASL Greetings & Introductions", thumb: "https://images.unsplash.com/photo-1486308510493-cb6f6c3f0e64?auto=format&fit=crop&w=260&q=80" }
+    ];
+
+    const videoList = document.getElementById('video-list');
+
+    videos.forEach(({id, title, thumb}) => {
+      const videoItem = document.createElement('div');
+      videoItem.className = 'video-item';
+
+      const titleEl = document.createElement('h3');
+      titleEl.textContent = title;
+
+      const thumbImg = document.createElement('img');
+      thumbImg.src = thumb;
+      thumbImg.alt = title + " thumbnail";
+
+      thumbImg.addEventListener('click', () => {
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+        iframe.title = title;
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        iframe.allowFullscreen = true;
+        iframe.style = 'width:100%; height:160px; border:none; border-radius:12px;';
+
+        videoItem.replaceChild(iframe, thumbImg);
+      });
+
+      videoItem.appendChild(titleEl);
+      videoItem.appendChild(thumbImg);
+      videoList.appendChild(videoItem);
+    });
+  </script>
+
+</body>
+</html>
